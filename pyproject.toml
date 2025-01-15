@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "streamlit-aibrary"
+name = "examples"
 version = "0.0.1"
 description = ""
 authors = ["Alireza Morsali <alireza.mors@gmail.com>"]
