@@ -14,7 +14,7 @@ markitdown = "^0.0.1a3"
 tiktoken = "^0.8.0"
 langchain-openai = "^0.3.0"
 python-dotenv = "^1.0.1"
-aibrary = "^0.0.2"
+aibrary = "^0.0.3"
 
 
 [build-system]
