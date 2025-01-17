@@ -2,6 +2,9 @@ import os
 from typing import Tuple
 
 import streamlit as st
+from aibrary import AiBrary
+from aibrary.resources.models import Model
+
 from categories.chat import chat_category
 from categories.embedding import rag_category
 from categories.image import image_category
@@ -13,9 +16,6 @@ from categories.translation import translation_category
 from categories.tts import tts_category
 from utils.model_info_generator import generate_markdown_for_models
 from utils.render_model_option import get_all_models_cached, render_model_option
-
-from aibrary import AiBrary
-from aibrary.resources.models import Model
 
 
 def intro():
@@ -31,40 +31,44 @@ def intro():
     """,
         unsafe_allow_html=True,
     )
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stForm"] {
+            border: none !important;
+            padding: 0 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
     if "api_key" not in st.session_state:
         st.session_state["api_key"] = os.environ.get("AIBRARY_API_KEY", "")
 
-    def update_api_key(new_value):
-        st.session_state["api_key"] = new_value
-        st.rerun()
-
-    col1, col2 = st.columns(
-        spec=[0.7, 0.2],
-        vertical_alignment="bottom",
-        gap="small",
-    )
-
-    with col1:
-        main_api_key = st.text_input(
-            "🔑 Enter your API Key",
-            value=st.session_state["api_key"],
-            on_change=lambda: update_api_key(st.session_state["api_key"]),
-            type="password",
+    with st.form("api_key_form"):
+        col1, col2 = st.columns(
+            spec=[0.7, 0.2],
+            vertical_alignment="bottom",
+            gap="small",
         )
-    with col2:
-        if st.button(
-            "Enter",
-            icon="🚪",
-        ):
-            if main_api_key != st.session_state["api_key"]:
-                update_api_key(main_api_key)
+
+        with col1:
+            main_api_key = st.text_input(
+                "🔑 Enter your API Key",
+                value=st.session_state["api_key"],
+                type="password",
+            )
+
+        with col2:
+            submitted = st.form_submit_button("Enter", icon="🚪")
+        if submitted:
+            st.session_state["api_key"] = main_api_key
 
 
 def sidebar() -> Tuple["Model", "AiBrary"]:
 
     import streamlit as st
-
     from aibrary import AiBrary
 
     with st.sidebar:
