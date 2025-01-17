@@ -63,33 +63,7 @@ def intro():
         with col2:
             submitted = st.form_submit_button("Enter", icon="🚪")
         if submitted:
-            # Update the session state on form submission
             st.session_state["api_key"] = main_api_key
-
-    # def update_api_key(new_value):
-    #     st.session_state["api_key"] = new_value
-    #     st.rerun()
-
-    # col1, col2 = st.columns(
-    #     spec=[0.7, 0.2],
-    #     vertical_alignment="bottom",
-    #     gap="small",
-    # )
-
-    # with col1:
-    #     main_api_key = st.text_input(
-    #         "🔑 Enter your API Key",
-    #         value=st.session_state["api_key"],
-    #         on_change=lambda: update_api_key(st.session_state["api_key"]),
-    #         type="password",
-    #     )
-    # with col2:
-    #     if st.button(
-    #         "Enter",
-    #         icon="🚪",
-    #     ):
-    #         if main_api_key != st.session_state["api_key"]:
-    #             update_api_key(main_api_key)
 
 
 def sidebar() -> Tuple["Model", "AiBrary"]:
