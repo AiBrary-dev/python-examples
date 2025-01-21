@@ -1,4 +1,6 @@
+import base64
 import os
+import random
 from typing import Tuple
 
 import streamlit as st
@@ -18,14 +20,22 @@ from utils.model_info_generator import generate_markdown_for_models
 from utils.render_model_option import get_all_models_cached, render_model_option
 
 
+def render_svg(svg):
+    """Renders the given svg string."""
+    b64 = base64.b64encode(svg.encode("utf-8")).decode("utf-8")
+    html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
+    return html
+
+
 def intro():
     import streamlit as st
 
+    logo = render_svg(open("assets/AiBrary - Logo - PRP.svg").read())
     st.markdown(
-        """
+        f"""
     <h1 style="display: flex; align-items: center;">
         Welcome to
-        <img src="https://www.aibrary.dev/_next/static/media/logo.3c3e5d20.svg" alt="Logo" style="margin-left: 10px; width: 200px;">
+        {logo}
         👋
     </h1>
     """,
@@ -42,10 +52,10 @@ def intro():
         """,
         unsafe_allow_html=True,
     )
-
     if "api_key" not in st.session_state:
-        st.session_state["api_key"] = os.environ.get("AIBRARY_API_KEY", "")
+        st.session_state["api_key"] = ""
 
+    # Main view
     with st.form("api_key_form"):
         col1, col2 = st.columns(
             spec=[0.7, 0.2],
@@ -56,14 +66,25 @@ def intro():
         with col1:
             main_api_key = st.text_input(
                 "🔑 Enter your API Key",
+                key="api_key_field",
                 value=st.session_state["api_key"],
                 type="password",
             )
 
         with col2:
-            submitted = st.form_submit_button("Enter", icon="🚪")
-        if submitted:
-            st.session_state["api_key"] = main_api_key
+            submitted = st.form_submit_button(
+                "Enter",
+                icon="🚪",
+            )
+            if submitted:
+                if "all_models" in st.session_state:
+                    del st.session_state["all_models"]
+                st.session_state["api_key"] = main_api_key
+                st.rerun()
+
+        st.markdown(
+            "Don't have an API Key? [Click here to get your API key.](https://www.aibrary.dev/dashboard/apikey)"
+        )
 
 
 def sidebar() -> Tuple["Model", "AiBrary"]:
@@ -72,19 +93,19 @@ def sidebar() -> Tuple["Model", "AiBrary"]:
     from aibrary import AiBrary
 
     with st.sidebar:
-        if (
-            aibrary_api_key := st.text_input(
-                "AiBrary API Key",
-                key="aibrary_api_key",
-                value=st.session_state["api_key"],
-                type="password",
-            )
-            or os.environ.get("AIBRARY_API_KEY") is not None
-        ):
-            if not aibrary_api_key:
-                aibrary_api_key = os.environ.get("AIBRARY_API_KEY")
-                st.rerun()
+        aibrary_api_key = st.text_input(
+            "AiBrary API Key",
+            key="api_key_field_side_bar",
+            value=st.session_state["api_key"],
+            type="password",
+        )
+
+        if aibrary_api_key != st.session_state["api_key"]:
             st.session_state["api_key"] = aibrary_api_key
+            if "all_models" in st.session_state:
+                del st.session_state["all_models"]
+
+        try:
             aibrary = (
                 AiBrary(
                     api_key=aibrary_api_key,
@@ -100,13 +121,26 @@ def sidebar() -> Tuple["Model", "AiBrary"]:
             category_name = st.selectbox(
                 "Choose a category",
                 categories,
-                format_func=lambda x: {"embedding": "rag"}.get(x, x).title(),
+                format_func=lambda x: {
+                    "tts": "text to speech",
+                    "stt": "speech to text",
+                    "embedding": "RAG",
+                }
+                .get(x, x)
+                .title(),
             )
             if category_name == "intro":
                 return None, None
             models, model_name = render_model_option(aibrary, category_name)
 
+            # Add this stmt here
+            st.session_state["api_key"] = aibrary_api_key
+
             return models[model_name], aibrary
+        except Exception as e:
+            st.warning(e)
+            return None, None
+
     return None, None
 
 
