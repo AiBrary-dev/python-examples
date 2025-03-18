@@ -3,6 +3,7 @@ import os
 import random
 from typing import Tuple
 
+import httpx
 import streamlit as st
 from aibrary import AiBrary
 from aibrary.resources.models import Model
@@ -175,9 +176,17 @@ def sidebar() -> Tuple["Model", "AiBrary"]:
             st.session_state["api_key"] = aibrary_api_key
 
             return models[model_name], aibrary
-        except Exception as e:
-            st.warning(e)
-            return None, None
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                st.warning("Unauthorized: Please check your credentials.")
+            elif e.response.status_code == 402:
+                st.warning("Payment Required: Please check your account credit.")
+            elif e.response.status_code == 500:
+                st.warning("Server Error: Something went wrong on the server.")
+            elif e.response.status_code == 503:
+                st.warning("Service Unavailable: The server is currently unavailable. Please try again later.")
+            else:
+                st.warning(f"Unexpected error occurred: {e.response.status_code} - {e.response.reason_phrase}")
 
     return None, None
 
