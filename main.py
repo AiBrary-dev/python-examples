@@ -20,27 +20,65 @@ from utils.model_info_generator import generate_markdown_for_models
 from utils.render_model_option import get_all_models_cached, render_model_option
 
 
-def render_svg(svg):
-    """Renders the given svg string."""
-    b64 = base64.b64encode(svg.encode("utf-8")).decode("utf-8")
-    html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
-    return html
+import base64
+import streamlit as st
 
+def render_colored_image(png_path, color="purple"):
+    """Wraps the PNG in an SVG with a color filter to recolor it."""
+    with open(png_path, "rb") as image_file:
+        b64 = base64.b64encode(image_file.read()).decode("utf-8")
+    
+    # Define the color values for purple
+    if color == "purple":
+        color_value = "#8A2BE2"  # BlueViolet color
+    else:
+        color_value = "none"
+    
+    svg_code = f'''
+    <svg height="100" >
+      <defs>
+        <filter id="colorize">
+          <feColorMatrix type="matrix"
+            values="0 0 0 0 {int(color_value[1:3], 16)/255}
+                    0 0 0 0 {int(color_value[3:5], 16)/255}
+                    0 0 0 0 {int(color_value[5:7], 16)/255}
+                    0 0 0 1 0"/>
+        </filter>
+      </defs>
+      <image filter="url(#colorize)" href="data:image/png;base64,{b64}"  height="100"/>
+    </svg>
+    '''
+    
+    return svg_code
 
 def intro():
-    import streamlit as st
+    logo_html = render_colored_image("assets/logo.png","purple")
+    col1, col2 = st.columns(
+            spec=[0.4, 0.6],
+            vertical_alignment="center",
+            gap="small",
+        )
 
-    logo = render_svg(open("assets/AiBrary - Logo - PRP.svg").read())
-    st.markdown(
+    with col1:
+        st.markdown(
         f"""
     <h1 style="display: flex; align-items: center;">
         Welcome to
-        {logo}
-        👋
     </h1>
     """,
         unsafe_allow_html=True,
     )
+
+    with col2:
+        st.markdown(
+        f"""
+    <h1 style="display: flex; align-items: center;">
+        {logo_html}
+    </h1>
+    """,
+        unsafe_allow_html=True,
+    )
+
     st.markdown(
         """
         <style>
@@ -173,7 +211,7 @@ def page_router(demo_name: str, model: "Model", aibrary: "AiBrary"):
 
 st.set_page_config(
     page_title="AiBrary",
-    page_icon="https://3389077816-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/organizations%2F2FbkTed5GwFvxgjieEqg%2Fsites%2Fsite_BrVCS%2Ficon%2FT6IoEo4vpVFwZq7zZU5N%2FAiBrary%20-%20Icon%20-%20PRM.svg?alt=media&token=08764038-7540-4388-b061-fe4f19b6636e",
+    page_icon="assets/favicon.png",
     layout="centered",
     initial_sidebar_state="auto",
     menu_items=None,
