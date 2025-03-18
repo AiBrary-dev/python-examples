@@ -14,6 +14,7 @@ tiktoken = "^0.8.0"
 langchain-openai = "^0.3.0"
 python-dotenv = "^1.0.1"
 aibrary = "^0.0.3"
+pillow = "^11.1.0"
 
 
 [build-system]
